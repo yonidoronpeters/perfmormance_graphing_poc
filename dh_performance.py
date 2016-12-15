@@ -28,7 +28,7 @@ def generate_perf_numbers(days=7, batch_size=1000000):
 
 def get_rows_from_db(days, batch_size):
     # get db connection and execute query
-    conn = MySQLdb.connect(host="localhost", user=os.environ['USER'], passwd=os.environ['PASSWD'], db="datahub")
+    conn = MySQLdb.connect(host="127.0.0.1", user=os.environ['USER'], passwd="", db="datahub")
     cursor = conn.cursor()
     cursor.execute(query(days, batch_size))
     return cursor.fetchall()
@@ -49,5 +49,5 @@ def clean_the_data(df):
 
 if __name__ == "__main__":
     while True:
-        generate_perf_numbers()
+        generate_perf_numbers(11)
         time.sleep(DAY_IN_SEC)

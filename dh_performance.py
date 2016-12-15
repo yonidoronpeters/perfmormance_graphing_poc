@@ -20,11 +20,19 @@ def generate_perf_numbers(days=7, batch_size=1000000):
     for key,lst in grouped_dict.iteritems():
         lst.insert(0, key)
     grouped_dict['dates']= dates
-    with open('json/data.json', 'w') as outfile:
-        json.dump(grouped_dict, outfile)
-
+    write_to_file(grouped_dict)
     print(df)
 
+def write_to_file(grouped_dict):
+    filename = 'json/data.json'
+    if not os.path.exists(os.path.dirname(filename)):
+        try:
+            os.makedirs(os.path.dirname(filename))
+        except OSError as exc: # Guard against race condition
+            if exc.errno != errno.EEXIST:
+                raise
+    with open(filename, 'w') as outfile:
+        json.dump(grouped_dict, outfile)
 
 def get_rows_from_db(days, batch_size):
     # get db connection and execute query

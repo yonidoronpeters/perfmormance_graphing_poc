@@ -28,7 +28,7 @@ def generate_perf_numbers(days=7, batch_size=1000000):
 
 def get_rows_from_db(days, batch_size):
     # get db connection and execute query
-    conn = MySQLdb.connect(host="127.0.0.1", user=os.environ['USER'], passwd="", db="datahub")
+    conn = MySQLdb.connect(host=os.environ['HOST'], user=os.environ['USER'], passwd=os.environ['PASSWD'], db=os.environ['DB_NAME'])
     cursor = conn.cursor()
     cursor.execute(query(days, batch_size))
     return cursor.fetchall()

@@ -2,16 +2,16 @@ import json
 import datetime as dt
 import MySQLdb
 import pandas as pd
+import pandas.io.sql as sql
 import os
 import time
 
 DAY_IN_SEC = 60 * 60 * 24
 
 def generate_perf_numbers(days=7, batch_size=1000000):
-    rows = get_rows_from_db(days, batch_size)
-    # convert data to panda's dataframe
-    df = pd.DataFrame( [[ij for ij in i] for i in rows] )
-    df.rename(columns={0: 'database', 1: 'TPS', 2: 'start_time'}, inplace=True); # rename the column headers
+    df = get_dataframe(days, batch_size)
+    df.rename(columns={'database_machine': 'database', 'TPS_Combined': 'TPS', 'dataload_start': 'start_time'}, inplace=True); # rename the column headers
+    print(df)
     clean_the_data(df)
     dates = map(str, df.drop_duplicates(subset='start_time')['start_time'].tolist()) # can also use today.strftime('%m/%d/%y')
     grouped = df.pivot_table(index = 'start_time', columns = 'database', values = 'TPS') # pivot the dataframe
@@ -34,12 +34,10 @@ def write_to_file(grouped_dict):
     with open(filename, 'w') as outfile:
         json.dump(grouped_dict, outfile)
 
-def get_rows_from_db(days, batch_size):
+def get_dataframe(days, batch_size):
     # get db connection and execute query
     conn = MySQLdb.connect(host=os.environ['HOST'], user=os.environ['USER'], passwd=os.environ['PASSWD'], db=os.environ['DB_NAME'])
-    cursor = conn.cursor()
-    cursor.execute(query(days, batch_size))
-    return cursor.fetchall()
+    return sql.read_sql(query(days, batch_size), conn)
 
 def query(days, batch_size):
     select = 'select database_machine, TPS_Combined, dataload_start'
@@ -49,7 +47,7 @@ def query(days, batch_size):
     return select + frm + where + order_by
 
 def db_name(url):
-    return str(url).split(":")[1].replace('sap', 'hana')
+    return str(url).split(":")[1]
 
 def clean_the_data(df):
     df['database'] = df['database'].apply(db_name)
